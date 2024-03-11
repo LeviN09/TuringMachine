@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Turing-gép szimulálás</title>
+    <link rel="stylesheet" href="styles.css">
+    <script type="module" src="./resources/three.module.min.js"></script>
+    <script type="module" src="./resources/DragControls.js"></script>
+    <script type="module" src="./resources/FontLoader.js"></script>
+    <script type="module" src="./resources/TextGeometry.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Turing-gép szimulálás</h1>
+        <div>
+            <label for="states">Állapotok:</label>
+            <input type="text" id="states">
+        </div>
+        <div>
+            <label for="alphabet">Ábécé:</label>
+            <input type="text" id="alphabet">
+        </div>
+        <div>
+            <label for="initialState">Kezdőállapot:</label>
+            <input type="text" id="initialState">
+        </div>
+        <div>
+            <label for="finalStates">Végállapotok:</label>
+            <input type="text" id="finalStates">
+        </div>
+        <div>
+            <label for="transitionFunction">Delta:</label>
+            <textarea id="transitionFunction"></textarea>
+        </div>
+        <div>
+            <label for="tape">Kezdőszalag:</label>
+            <input type="text" id="tape">
+        </div>
+        <button onclick="simulate()">Szimulálás</button>
+        <div id="result"></div>
+    </div>
+
+    <canvas id="webgl-canvas" width="800" height="600"></canvas>
+
+    <script type="module" src="graph.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
