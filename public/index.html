@@ -9,9 +9,10 @@
     <script type="module" src="./resources/DragControls.js"></script>
     <script type="module" src="./resources/FontLoader.js"></script>
     <script type="module" src="./resources/TextGeometry.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/20.0.0/tween.umd.js"></script>
 </head>
 <body>
-    <div class="container">
+    <div class="text-field-container">
         <h1>Turing-gép szimulálás</h1>
         <div>
             <label for="states">Állapotok:</label>
@@ -37,13 +38,18 @@
             <label for="tape">Kezdőszalag:</label>
             <input type="text" id="tape">
         </div>
-        <button onclick="simulate()">Szimulálás</button>
+        <button id="start-button">Szimulálás</button>
+        <button id="step-button">Lépés</button>
         <div id="result"></div>
+        <button onclick="saveConfiguration()">Konfiguráció letöltése</button>
+        <button onclick="loadConfiguration()">Konfiguráció betöltése</button>
+    </div>
+    <div class="canvas-container">
+        <canvas id="canvas"></canvas>
     </div>
 
-    <canvas id="webgl-canvas" width="800" height="600"></canvas>
-
-    <script type="module" src="graph.js"></script>
-    <script src="script.js"></script>
+    <script type="module" src="graphics.js"></script>
+    <script type="module" src="script.js"></script>
+    <script src="turing_machine.js"></script>
 </body>
 </html>
