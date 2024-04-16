@@ -30,19 +30,38 @@
             <label for="finalStates">Végállapotok:</label>
             <input type="text" id="finalStates">
         </div>
-        <div>
-            <label for="transitionFunction">Delta:</label>
-            <textarea id="transitionFunction"></textarea>
-        </div>
+
         <div>
             <label for="tape">Kezdőszalag:</label>
             <input type="text" id="tape">
         </div>
+        <div>
+            <label for="transitionFunction">Delta függvény:</label>
+            <div>
+                <label>
+                    <input type="radio" name="inputMethod" value="dropdowns" checked> Kiválasztás
+                </label>
+                <label>
+                    <input type="radio" name="inputMethod" value="text"> Nyers bevitel
+                </label>
+            </div>
+            <div>
+                <div id="transitionFunctionDropdowns">
+                    <div id="transitionFunction">
+                    </div>
+                    <button type="button" id="addTransitionLineBtn">Új sor hozzáadása</button>
+                </div>
+                <textarea id="transitionFunctionText" style="display: none;" placeholder="q0 a b q1 R"></textarea>
+            </div>
+        </div>
+        <br>
         <button id="start-button">Szimulálás</button>
         <button id="step-button">Lépés</button>
         <div id="result"></div>
-        <button onclick="saveConfiguration()">Konfiguráció letöltése</button>
-        <button onclick="loadConfiguration()">Konfiguráció betöltése</button>
+        <button id="save-button">Konfiguráció letöltése</button>
+        <button id="load-button">Konfiguráció betöltése</button>
+        
+        
     </div>
     <div class="canvas-container">
         <canvas id="canvas"></canvas>

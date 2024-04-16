@@ -3,8 +3,6 @@ import { DragControls } from './resources/DragControls.js';
 import { FontLoader } from './resources/FontLoader.js';
 import { TextGeometry } from './resources/TextGeometry.js';
 
-const loader = document.getElementById('loader-button');
-
 const scene = new THREE.Scene();
 
 const canvasWidth = window.innerWidth / 1.5;
@@ -82,10 +80,9 @@ class Line {
     constructor(startNode, endNode) {
         this.startNode = startNode;
         this.endNode = endNode;
-        const geometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3().subVectors(startNode.node.position, diff), new THREE.Vector3().subVectors(endNode.node.position, diff)]);
-        const material = new THREE.LineBasicMaterial({ color: 0x0f0f0f });
-        this.line = new THREE.Line(geometry, material);
-        graphGroup.add(this.line);
+        const direction = endNode.node.position.clone().sub(startNode.node.position);
+        this.geometry = new THREE.ArrowHelper(direction.normalize(), new THREE.Vector3().subVectors(startNode.node.position, diff), direction.length() - 0.3, 0x0f0f0f, 0.1, 0.1);
+        graphGroup.add(this.geometry);
         lines.push(this);
     }
 }
@@ -127,7 +124,10 @@ dragControls.addEventListener('drag', function onDrag(event) {
     }
 
     lines.forEach(line => {
-        line.line.geometry.setFromPoints([new THREE.Vector3().subVectors(line.startNode.node.position, diff), new THREE.Vector3().subVectors(line.endNode.node.position, diff)]);
+        const direction = line.endNode.node.position.clone().sub(line.startNode.node.position);
+        line.geometry.setLength(direction.length() - 0.3, 0.1, 0.1);
+        line.geometry.setDirection(direction.normalize());
+        line.geometry.position.copy(new THREE.Vector3().subVectors(line.startNode.node.position, diff));
     });
     event.object.userData.initialY = event.object.position.y;
 });
