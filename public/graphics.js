@@ -10,7 +10,7 @@ const canvasHeight = window.innerHeight / 1.0;
 
 const aspect = canvasWidth / canvasHeight;
 
-const maxYPosition = -1;//(canvasHeight / 3) * 2;
+const maxYPosition = -0.75;//(canvasHeight / 3) * 2;
 
 const cameraWidth = 8;
 const cameraHeight = cameraWidth / aspect;
@@ -188,10 +188,11 @@ class Tape {
         this.elements = [];
         this.offset = 0;
         tapes.push(this);
-
+        
         const indicatorGeometry = new THREE.BoxGeometry(size.x * 1.2, size.y * 1.2, size.z * 1.2);
         const indicatorMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
         const indicatorMesh = new THREE.Mesh(indicatorGeometry, indicatorMaterial);
+        this.indicator = indicatorMesh;
         tapeGroup.add(indicatorMesh);
 
         indicatorMesh.position.copy(position);
@@ -264,12 +265,12 @@ function animate() {
 }
 animate();
 
-const tape1 = new Tape(new THREE.Vector3(0, -1.5, 0), new THREE.Vector3(0.5, 0.5, 0.5));
+const tape1 = new Tape(new THREE.Vector3(0, -1.2, 0), new THREE.Vector3(0.5, 0.5, 0.5));
 tape1.initTape("");
 
 export function initCanvas(turingMachineState) {
     lines.forEach(line => {
-        graphGroup.remove(line.line);
+        graphGroup.remove(line.geometry);
     });
     lines.length = 0;
 
@@ -281,6 +282,7 @@ export function initCanvas(turingMachineState) {
 
     tapes.forEach(tape => {
         tape.deleteTape();
+        tapeGroup.remove(tape.indicator);
     });
     tapes.length = 0;
 
@@ -304,19 +306,35 @@ export function initCanvas(turingMachineState) {
         }
     }
 
-    const tape1 = new Tape(new THREE.Vector3(0, -1.5, 0), new THREE.Vector3(0.5, 0.5, 0.5));
-    tape1.initTape(turingMachineState.tape.join(''));
+    for (var j = 0; j < turingMachineState.tapeNum; ++j) {
+        const tape = new Tape(new THREE.Vector3(0, -1.2 - j * 0.7, 0), new THREE.Vector3(0.5, 0.5, 0.5));
+        
+        tape.initTape(turingMachineState.tapes[j].join(''));
+
+        if (turingMachineState.headPosis[j] > 0) {
+            for (var k = 0; k < turingMachineState.headPosis[j]; ++k) {
+                tape.shiftLeft();
+            }
+        }
+        else {
+            for (var k = 0; k > turingMachineState.headPosis[j]; --k) {
+                tape.shiftRight();
+            }
+        }
+    }
 }
 
 export function updateCanvas(turingMachineState) {
-    tapes[0].elements[tapes[0].offset].changeText(turingMachineState.lastWritten);
-    if (turingMachineState.lastMove === 'R') {
-        tapes[0].shiftLeft();
-        tapes[0].addElementFront('');
-    }
-    else if (turingMachineState.lastMove === 'L') {
-        tapes[0].shiftRight();
-        tapes[0].addElementBack('');
+    for (var i = 0; i < turingMachineState.tapeNum; ++i) {
+        tapes[i].elements[tapes[i].offset].changeText(turingMachineState.lastWrittens[i]);
+        if (turingMachineState.lastMoves[i] === 'R') {
+            tapes[i].shiftLeft();
+            tapes[i].addElementFront('');
+        }
+        else if (turingMachineState.lastMoves[i] === 'L') {
+            tapes[i].shiftRight();
+            tapes[i].addElementBack('');
+        }
     }
 
     nodes.forEach(node => {

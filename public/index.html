@@ -12,7 +12,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/20.0.0/tween.umd.js"></script>
 </head>
 <body>
-    <div class="text-field-container">
+    <div class="text-field-container" style="overflow:scroll; height: 100vh;">
         <h1>Turing-gép szimulálás</h1>
         <div>
             <label for="states">Állapotok:</label>
@@ -30,13 +30,22 @@
             <label for="finalStates">Végállapotok:</label>
             <input type="text" id="finalStates">
         </div>
-
+        <div id="tapesSection">
+            <label for="numTapes">Szalagok száma:</label>
+            <select id="numTapes">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+            </select>
+        </div>
+        
         <div>
             <label for="tape">Kezdőszalag:</label>
             <input type="text" id="tape">
         </div>
+        <br>
         <div>
-            <label for="transitionFunction">Delta függvény:</label>
+            <h3 for="transitionFunction">Delta függvény:</h3>
             <div>
                 <label>
                     <input type="radio" name="inputMethod" value="dropdowns" checked> Kiválasztás
@@ -47,20 +56,33 @@
             </div>
             <div>
                 <div id="transitionFunctionDropdowns">
-                    <div id="transitionFunction">
-                    </div>
-                    <button type="button" id="addTransitionLineBtn">Új sor hozzáadása</button>
+                    <button id="addTransitionBtn">Új sor hozzáadása</button>
+                    <button id="clearTransitionList">Sorok törlése</button>
+                    <ul id="transitionList" style="overflow:scroll; height:200px;">
+                    </ul>
                 </div>
-                <textarea id="transitionFunctionText" style="display: none;" placeholder="q0 a b q1 R"></textarea>
+                <textarea id="transitionFunctionText" style="display: none;" placeholder="q0 _ _&#10;q1 a b R L"></textarea>
             </div>
         </div>
         <br>
-        <button id="start-button">Szimulálás</button>
+        <button id="start-button">Indítás</button>
         <button id="step-button">Lépés</button>
+        <button id="play-button">⏵</button>
+        <div class="slidecontainer">
+            <label id="speed-label">Sebesség:</label>
+            <input type="range" min="0" max="5000" value="500" class="slider" id="step-speed">
+        </div>
+        <button id="whole-simulation-button">Gyors eredmény</button>
         <div id="result"></div>
         <button id="save-button">Konfiguráció letöltése</button>
         <button id="load-button">Konfiguráció betöltése</button>
         
+        <div id="logPanel">
+            <h3>Log Panel</h3>
+            <button id="delete-log-button">Törlés</button>
+            <ul id="logList" style="overflow:scroll; height:200px;">
+            </ul>
+        </div>
         
     </div>
     <div class="canvas-container">

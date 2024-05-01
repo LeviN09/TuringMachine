@@ -1,170 +1,246 @@
 import { initCanvas, updateCanvas } from "./graphics.js";
 
-var turingMachines = [];
-var simulationStarted = false;
-
-const startButton = document.getElementById('start-button');
-const stepButton = document.getElementById('step-button');
-const saveButton = document.getElementById('save-button');
-const loadButton = document.getElementById('load-button');
-
-const states = document.getElementById('states');
-const alphabet = document.getElementById('alphabet');
-const initialState = document.getElementById('initialState');
-const finalStates = document.getElementById('finalStates');
-const transitionFunctionText = document.getElementById('transitionFunctionText');
-const tape = document.getElementById('tape');
-
-function packageInitState() {
-    const selectedMethod = document.querySelector('input[name="inputMethod"]:checked').value;
-    var transitionFunctionStr;
-    if (selectedMethod === "dropdowns") {
-        transitionFunctionStr = parseTransitionFunction(stringifyTransitionFunction());
-    }
-    else {
-        transitionFunctionStr = parseTransitionFunction(transitionFunctionText.value);
-    }
-    var defStates = states.value.split(',');
-    var defInitState = initialState.value;
-    var defFinalStates = finalStates.value.split(',');
-    var defTape = tape.value.split('');
-    var defAlphabet = alphabet.value.split(',');
-
-    let turingMachineState = {
-        states: defStates,
-        alphabet: defAlphabet,
-        transFunct: transitionFunctionStr,
-        initState: defInitState,
-        finalStates: defFinalStates,
-        tape: defTape
-    };
-
-    return turingMachineState;
-}
-
-function startSimulation() {
-    turingMachines.length = 0;
-    
-    var tmState = packageInitState();
-    //console.log(tmState.states, tmState.alphabet, tmState.initState, tmState.finalStates, tmState.transFunct, tmState.tape);
-    
-    var tm = new TuringMachine(
-        tmState.states,
-        tmState.alphabet,
-        tmState.transFunct,
-        tmState.initState,
-        tmState.finalStates
-    );
-    tm.tape = tmState.tape;
-    turingMachines.push(tm);
-    simulationStarted = true;
-
-    initCanvas(tmState);
-    
-    //wholeSimulation();
-}
-
-startButton.addEventListener('click', () => {
-    startSimulation();
-});
-
-stepButton.addEventListener('click', () => {
-    var tm = turingMachines[0];
-
-    tm.step();
-
-    if (tm.isHalted() || tm.isOverLimit()) {
-        document.getElementById('result').innerText = `Szalag: ${tm.tape.join('')}\nTerminált: ${tm.isHalted()}`;
-        return;
-    }
-
-    updateCanvas(tm.packageState());
-});
-
-saveButton.addEventListener('click', () => {
-    saveConfiguration();
-});
-
-loadButton.addEventListener('click', () => {
-    loadConfiguration();
-});
-
-function wholeSimulation() {
-    var tm = turingMachines[0];
-    
-    while (!tm.isHalted() && !tm.isOverLimit()) {
-        tm.step();
-    }
-    document.getElementById('result').innerText = `Szalag: ${tm.tape.join('')}\nTerminált: ${tm.isHalted()}`;
-}
-
-function parseTransitionFunction(transitionFunctionStr) {
-    const transitions = {};
-    const lines = transitionFunctionStr.trim().split('\n');
-    lines.forEach(line => {
-        const [currentState, currentSymbol, writeSymbol, nextState, moveDirection] = line.trim().split(/\s+/);
-        if (!transitions[currentState]) {
-            transitions[currentState] = {};
-        }
-        transitions[currentState][currentSymbol] = {
-            writeSymbol,
-            nextState,
-            moveDirection
-        };
-    });
-    return transitions;
-}
-
-function saveConfiguration() {
-    const configuration = {
-        states: document.getElementById('states').value.split(','),
-        startState: document.getElementById('initialState').value,
-        endState: document.getElementById('finalStates').value.split(','),
-        alphabet: document.getElementById('alphabet').value.split(','),
-        startingTape: document.getElementById('tape').value,
-        transitionFunction: document.getElementById('transitionFunction').value
-    };
-
-    const json = JSON.stringify(configuration, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'turing_machine_configuration.json';
-    a.click();
-
-    URL.revokeObjectURL(url);
-}
-
-function loadConfiguration() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json';
-
-    input.onchange = function(event) {
-        const file = event.target.files[0];
-        const reader = new FileReader();
-
-        reader.onload = function() {
-            const json = reader.result;
-            const configuration = JSON.parse(json);
-
-            document.getElementById('states').value = configuration.states.join(',');
-            document.getElementById('initialState').value = configuration.startState;
-            document.getElementById('finalStates').value = configuration.endState.join(',');
-            document.getElementById('alphabet').value = configuration.alphabet.join(',');
-            document.getElementById('tape').value = configuration.startingTape;
-            document.getElementById('transitionFunction').value = configuration.transitionFunction;
-        };
-
-        reader.readAsText(file);
-    };
-
-    input.click();
-}
-
 document.addEventListener("DOMContentLoaded", function() {
+    var turingMachines = [];
+    var simulationStarted = false;
+
+    const logList = document.getElementById("logList");
+    let turingMachineStates = [];
+
+    let timer = 0;
+
+    const startButton = document.getElementById('start-button');
+    const stepButton = document.getElementById('step-button');
+    const saveButton = document.getElementById('save-button');
+    const loadButton = document.getElementById('load-button');
+    const playButton = document.getElementById('play-button');
+    const wholeSimButton = document.getElementById('whole-simulation-button');
+    const delLogButton = document.getElementById('delete-log-button');
+    const delTransButton = document.getElementById('clearTransitionList');
+
+    const speedLabel = document.getElementById('speed-label');
+    const speedSlider = document.getElementById('step-speed');
+
+    const states = document.getElementById('states');
+    const alphabet = document.getElementById('alphabet');
+    const initialState = document.getElementById('initialState');
+    const finalStates = document.getElementById('finalStates');
+    const transitionFunctionText = document.getElementById('transitionFunctionText');
+    const tape = document.getElementById('tape');
+    const numTapesSelect = document.getElementById("numTapes");
+
+    function packageInitState() {
+        const selectedMethod = document.querySelector('input[name="inputMethod"]:checked').value;
+        var transitionFunctionStr;
+        if (selectedMethod === "dropdowns") {
+            transitionFunctionStr = parseTransitionFunction(stringifyTransitionFunction());
+        }
+        else {
+            transitionFunctionStr = parseTransitionFunction(transitionFunctionText.value);
+        }
+        var defStates = states.value.split(',');
+        var defInitState = initialState.value;
+        var defFinalStates = finalStates.value.split(',');
+        var defTape = tape.value.split('');
+        var defAlphabet = alphabet.value.split(',');
+        var defTapeNum = numTapesSelect.value;
+
+        var defTapes = [];
+        var defHeadPosis = [];
+        defTapes[0] = defTape;
+        defHeadPosis[0] = 0;
+        for (var i = 1; i < defTapeNum; ++i) {
+            defTapes[i] = ['_'];
+            defHeadPosis[i] = 0;
+        }
+
+        let turingMachineState = {
+            states: defStates,
+            alphabet: defAlphabet,
+            transFunct: transitionFunctionStr,
+            initState: defInitState,
+            finalStates: defFinalStates,
+            tapeNum: defTapeNum,
+            tapes: defTapes,
+            headPosis: defHeadPosis
+        };
+
+        return turingMachineState;
+    }
+
+    function startSimulation() {
+        var tmState = packageInitState();
+
+        loadNewState(tmState);
+    }
+
+    playButton.addEventListener("click", togglePlay);
+
+    function togglePlay() {
+        if (!simulationStarted) {
+            console.log(speedSlider.value);
+            timer = setInterval(step, speedSlider.value);
+            playButton.textContent = "⏸";
+        }
+        else {
+            clearInterval(timer);
+            playButton.textContent = "⏵";
+        }
+
+        simulationStarted = !simulationStarted;
+    }
+
+    speedSlider.addEventListener("input", setSpeed);
+
+    function setSpeed() {
+        speedLabel.text = "Sebesség: " + speedSlider.value;
+        if (simulationStarted) {
+            clearInterval(timer);
+            timer = setInterval(step, speedSlider.value);
+        }
+    }
+    
+    wholeSimButton.addEventListener("click", wholeSimulation);
+
+    function step() {
+        var tm = turingMachines[0];
+
+        tm.step();
+        addStateEntry(tm.packageLogState());
+
+        if (tm.isHalted() || tm.isOverLimit()) {
+            document.getElementById('result').innerText = `Szalag: ${tm.tapes[0].join('')}\nTerminált: ${tm.isHalted()}`;
+            togglePlay();
+            return;
+        }
+
+        updateCanvas(tm.packageState());
+    }
+
+    function loadNewState(tmState) {
+        turingMachines.length = 0;
+
+        var tm = new TuringMachine(
+            tmState.states,
+            tmState.alphabet,
+            tmState.transFunct,
+            tmState.initState,
+            tmState.finalStates,
+            tmState.tapeNum,
+            tmState.headPosis
+        );
+        tm.tapes = tmState.tapes;
+        turingMachines.push(tm);
+
+        initCanvas(tmState);
+    }
+
+    startButton.addEventListener('click', () => {
+        startSimulation();
+    });
+
+    stepButton.addEventListener('click', step);
+
+    saveButton.addEventListener('click', () => {
+        saveConfiguration();
+    });
+
+    loadButton.addEventListener('click', () => {
+        loadConfiguration();
+    });
+
+    function wholeSimulation() {
+        var tm = turingMachines[0];
+
+        while (!tm.isHalted() && !tm.isOverLimit()) {
+            tm.step();
+        }
+        document.getElementById('result').innerText = `Szalag: ${tm.tapes[0].join('')}\nTerminált: ${tm.isHalted()}`;
+    }
+
+    function parseTransitionFunction(transitionFunctionStr) {
+        const transitions = {};
+        const lines = transitionFunctionStr.trim().split('\n');
+        
+        const tapeNum = parseInt(numTapesSelect.value);
+        for (var i = 0; i < lines.length; i += 2) {
+            const identifierLine = lines[i].trim().split(/\s+/);
+            const fromState = identifierLine[0];
+            const rule = lines[i + 1].trim().split(/\s+/);
+            const toState = rule[0];
+
+            identifierLine.shift();
+            const identifier = identifierLine.join(',');
+
+            if (!transitions[fromState]) {
+                transitions[fromState] = {};
+            }
+
+            transitions[fromState][identifier] = {
+                nextState: toState,
+                transition: []
+            };
+
+            rule.shift();
+            for (var j = 0; j < tapeNum; ++j) {
+                const transitionRule = {
+                    writeSymbol: rule[j],
+                    moveDirection: rule[j + tapeNum]
+                };
+
+                transitions[fromState][identifier].transition.push(transitionRule);
+            }
+        }
+        return transitions;
+    }
+
+    function saveConfiguration() {
+        const configuration = {
+            states: document.getElementById('states').value.split(','),
+            startState: document.getElementById('initialState').value,
+            endState: document.getElementById('finalStates').value.split(','),
+            alphabet: document.getElementById('alphabet').value.split(','),
+            transitionFunction: document.getElementById('transitionFunctionText').value
+        };
+
+        const json = JSON.stringify(configuration, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'turing_machine_configuration.json';
+        a.click();
+
+        URL.revokeObjectURL(url);
+    }
+
+    function loadConfiguration() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+
+        input.onchange = function(event) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function() {
+                const json = reader.result;
+                const configuration = JSON.parse(json);
+
+                document.getElementById('states').value = configuration.states.join(',');
+                document.getElementById('initialState').value = configuration.startState;
+                document.getElementById('finalStates').value = configuration.endState.join(',');
+                document.getElementById('alphabet').value = configuration.alphabet.join(',');
+                document.getElementById('transitionFunctionText').value = configuration.transitionFunction;
+            };
+
+            reader.readAsText(file);
+        };
+
+        input.click();
+    }
+
     const inputMethodDropdowns = document.getElementById("transitionFunctionDropdowns");
     const inputMethodText = document.getElementById("transitionFunctionText");
 
@@ -185,112 +261,175 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     toggleInputMethod();
-    
-    const addTransitionLineBtn = document.getElementById("addTransitionLineBtn");
-    const transitionFunctionDiv = document.getElementById("transitionFunction");
 
-    addTransitionLineBtn.addEventListener("click", function() {
-        const transitionLineDiv = document.createElement("div");
-        transitionLineDiv.classList.add("transition-line");
+    // ----------------------------------
 
-        transitionLineDiv.innerHTML = `
-            <select class="from-state-select">
-            </select>
-            <select class="from-letter-select">
-            </select>
-            <select class="to-state-select">
-            </select>
-            <select class="to-letter-select">
-            </select>
-            <select class="move-direction-select">
-                <option value="L">L</option>
-                <option value="S">S</option>
-                <option value="R">R</option>
-            </select>
-            <button type="button" class="remove-transition-line-btn">×</button>
-        `;
+    function addStateEntry(state) {
+        let newState = structuredClone(state);
+        console.log("hub", newState);
+        turingMachineStates.push(newState);
+        const listItem = document.createElement("li");
+        listItem.textContent = state.tapes[0];
 
-        const states = document.getElementById("states").value.split(",");
-        const alphabet = document.getElementById("alphabet").value.split(",");
-        const fromStateSelect = transitionLineDiv.querySelector(".from-state-select");
-        const toStateSelect = transitionLineDiv.querySelector(".to-state-select");
-        const fromLetterSelect = transitionLineDiv.querySelector(".from-letter-select");
-        const toLetterSelect = transitionLineDiv.querySelector(".to-letter-select");
-        states.forEach(state => {
-            const option1 = document.createElement("option");
-            const option2 = document.createElement("option");
-            option1.text = option2.text = state.trim();
-            fromStateSelect.add(option1);
-            toStateSelect.add(option2);
-        });
-        alphabet.forEach(letter => {
-            const option1 = document.createElement("option");
-            const option2 = document.createElement("option");
-            option1.text = option2.text = letter.trim();
-            fromLetterSelect.add(option1);
-            toLetterSelect.add(option2);
+        const loadButton = document.createElement("button");
+        loadButton.textContent = "Betöltés";
+        loadButton.addEventListener("click", function() {
+            loadNewState(newState);
         });
 
-        addBlank(fromLetterSelect);
-        addBlank(toLetterSelect);
+        listItem.appendChild(loadButton);
+        logList.appendChild(listItem);
+    }
 
-        transitionFunctionDiv.appendChild(transitionLineDiv);
+    delLogButton.addEventListener("click", () => {
+        logList.innerHTML = "";
     });
 
 
-    const statesInput = document.getElementById("states");
-    const alphabetInput = document.getElementById("alphabet");
+    const transitionList = document.getElementById("transitionList");
+    const addTransitionBtn = document.getElementById("addTransitionBtn");
+
+    function addTransitionEntry() {
+        const listItem = document.createElement("li");
+        listItem.setAttribute("class", "transitionListItem")
+
+        const fromStateSelect = createSelectInput("fromState", "fromState", states.value.split(','), false, false);
+        const toStateSelect = createSelectInput("toState", "toState", states.value.split(','), false, false);
+
+        const fromLettersSelects = [];
+        const toLettersSelects = [];
+        const moveDirectionSelects = [];
+
+        const dirs = ['L', 'S', 'R'];
+
+        const tapeNum = parseInt(numTapesSelect.value);
+
+        for (let i = 0; i < tapeNum; i++) {
+            let needBr = i ===  tapeNum - 1;
+            const fromLetterSelect = createSelectInput(`fromLetter${i}`, "fromLetter", alphabet.value.split(','), needBr, true);
+            const toLetterSelect = createSelectInput(`toLetter${i}`, "toLetter", alphabet.value.split(','), false, true);
+            const moveDirectionSelect = createSelectInput(`fromLetter${i}`, "moveDir", dirs, needBr, false);
+            fromLettersSelects.push(fromLetterSelect);
+            toLettersSelects.push(toLetterSelect);
+            moveDirectionSelects.push(moveDirectionSelect);
+        }
+
+        listItem.appendChild(fromStateSelect);
+        fromLettersSelects.forEach(select => listItem.appendChild(select));
+        listItem.appendChild(toStateSelect);
+        toLettersSelects.forEach(select => listItem.appendChild(select));
+        moveDirectionSelects.forEach(select => listItem.appendChild(select));
+
+        transitionList.appendChild(listItem);
+
+        const br = document.createElement("br");
+        transitionList.appendChild(br);
+    }
+
+    function createSelectInput(id, className, options, br, needBlank) {
+        const divElement = document.createElement("label");
+
+        const selectElement = document.createElement("select");
+        selectElement.setAttribute("id", id);
+        selectElement.setAttribute("class", className);
+
+        options.forEach(option => {
+            const optionElement = document.createElement("option");
+            optionElement.value = option;
+            optionElement.textContent = option;
+
+            selectElement.appendChild(optionElement);
+        });
+
+        if (needBlank) {
+            addBlank(selectElement);
+        }
+
+        divElement.appendChild(selectElement);
+        if (br) {
+            const brElement = document.createElement("br");
+            divElement.appendChild(brElement);
+        }
+        return divElement;
+    }
+
+    addTransitionBtn.addEventListener("click", addTransitionEntry);
+
+    numTapesSelect.addEventListener("input", setNumTapes);
+    delTransButton.addEventListener("click", setNumTapes);
+
+    function setNumTapes() {
+        transitionList.innerHTML = "";
+    }
 
     document.addEventListener("click", function(event) {
-        if (event.target && event.target.classList.contains("remove-transition-line-btn")) {
+        if (event.target && event.target.classList.contains("removeTransitionLineBtn")) {
             event.target.parentElement.remove();
         }
     });
 
-    statesInput.addEventListener("input", function() {
-        const stateSelects = document.querySelectorAll(".from-state-select, .to-state-select");
+    states.addEventListener("input", function() {
+        const stateSelects = document.querySelectorAll("#fromState, #toState");
         stateSelects.forEach(select => {
-            updateSelectableList(statesInput, select);
+            updateSelectableList(states, select);
         });
     });
 
-    alphabetInput.addEventListener("input", function() {
-        const letterSelects = document.querySelectorAll(".from-letter-select, .to-letter-select");
+    alphabet.addEventListener("input", function() {
+        const letterSelects = document.querySelectorAll(".fromLetter, .toLetter");
         letterSelects.forEach(select => {
-            updateSelectableList(alphabetInput, select);
+            updateSelectableList(alphabet, select);
             addBlank(select);
         });
     });
 
     function updateSelectableList(input, selectElement) {
         const values = input.value.split(",").map(item => item.trim());
+        const selectedVal = selectElement.value;
         selectElement.innerHTML = "";
         values.forEach(value => {
             const option = document.createElement("option");
             option.text = value;
             selectElement.add(option);
         });
+        selectElement.value = selectedVal;
     }
-    
-    function addBlank(letterSelect) {
+
+    function addBlank(select) {
         const blankOpt = document.createElement("option");
-        blankOpt.text = "_";
-        letterSelect.add(blankOpt);
+        blankOpt.value = "_";
+        blankOpt.textContent = "_";
+        select.appendChild(blankOpt);
     }
 });
 
 function stringifyTransitionFunction() {
-    const transitionFunctionDiv = document.getElementById("transitionFunction");
+    const transitionFunctionDiv = document.getElementById("transitionList");
     let transitionLines = "";
-    const transitionLineElements = transitionFunctionDiv.querySelectorAll(".transition-line");
+    const transitionLineElements = transitionFunctionDiv.querySelectorAll(".transitionListItem");
     transitionLineElements.forEach(line => {
-        const fromStateSelect = line.querySelector(".from-state-select").value;
-        const toStateSelect = line.querySelector(".to-state-select").value;
-        const fromLetterSelect = line.querySelector(".from-letter-select").value;
-        const toLetterSelect = line.querySelector(".to-letter-select").value;
-        const moveDirectionSelect = line.querySelector(".move-direction-select").value;
+        const fromStateSelect = line.querySelector("#fromState").value;
+        const toStateSelect = line.querySelector("#toState").value;
+        
+        const fromLetters = [];
+        const fromLettersSelect = line.querySelectorAll(".fromLetter");
+        fromLettersSelect.forEach(letter => {
+            fromLetters.push(letter.value);
+        });
 
-        const transitionLine = fromStateSelect.concat(" ", fromLetterSelect, " ", toLetterSelect, " ", toStateSelect, " ", moveDirectionSelect);
+        const toLetters = [];
+        const toLettersSelect = line.querySelectorAll(".toLetter");
+        toLettersSelect.forEach(letter => {
+            toLetters.push(letter.value);
+        });
+
+        const moveDirs = [];
+        const moveDirSelect = line.querySelectorAll(".moveDir");
+        moveDirSelect.forEach(dir => {
+            moveDirs.push(dir.value);
+        });
+
+        const transitionLine = fromStateSelect.concat(" ", fromLetters.join(' '), "\n", toStateSelect, " ", toLetters.join(' '), " ", moveDirs.join(' '));
 
         transitionLines = transitionLines.concat("\n", transitionLine);
     });
