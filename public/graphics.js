@@ -41,7 +41,7 @@ const nodes = [];
 const nodeMeshes = [];
 const lines = [];
 const tapes = [];
-//const texts = [];
+const texts = [];
 
 class Node {
     constructor(x, y, z, color, text) {
@@ -77,21 +77,47 @@ class Node {
 
 const diff = new THREE.Vector3(0, 0, 0.5);
 class Line {
-    constructor(startNode, endNode) {
+    constructor(startNode, endNode, text) {
         this.startNode = startNode;
         this.endNode = endNode;
         const direction = endNode.node.position.clone().sub(startNode.node.position);
         this.geometry = new THREE.ArrowHelper(direction.normalize(), new THREE.Vector3().subVectors(startNode.node.position, diff), direction.length() - 0.3, 0x0f0f0f, 0.1, 0.1);
+
+        this.text = text;
+        const loader = new FontLoader();
+        loader.load('./resources/Madimi One_Regular.json', (font) => {
+            const textGeometry = new TextGeometry(text, {
+                font: font,
+                size: 0.1,
+                height: 0.01
+            });
+            textGeometry.computeBoundingBox();
+            const textWidth = textGeometry.boundingBox.max.x - textGeometry.boundingBox.min.x;
+            const textHeight = textGeometry.boundingBox.max.y - textGeometry.boundingBox.min.y;
+            const textMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+    
+            this.textMesh = new THREE.Mesh(textGeometry, textMaterial);
+            const to = endNode.node.position.clone();
+            const from = startNode.node.position.clone();
+            const textPosition = from.multiplyScalar(0.25).add(to.clone().multiplyScalar(0.75));
+
+            this.textMesh.position.clone(textPosition);
+            this.textMesh.material.pointerEvents = false;
+
+            graphGroup.add(this.textMesh);
+            texts.push(this.textMesh);
+        });
+        console.log("hoy");
         graphGroup.add(this.geometry);
         lines.push(this);
     }
 }
 
-function connectNodes(node1, node2) {
-    var line = new Line(node1, node2);
+function connectNodes(node1, node2, text) {
+    var line = new Line(node1, node2, text);
 }
 
-function connectNodesWithNames(name1, name2) {
+function connectNodesWithNames(name1, name2, text) {
     if (name1 == name2) {
         return;
     }
@@ -113,7 +139,7 @@ function connectNodesWithNames(name1, name2) {
             node2 = nodes[i];
         }
     }
-    connectNodes(node1, node2);
+    connectNodes(node1, node2, text);
 }
 
 const dragControls = new DragControls(nodeMeshes, camera, renderer.domElement);
@@ -128,6 +154,11 @@ dragControls.addEventListener('drag', function onDrag(event) {
         line.geometry.setLength(direction.length() - 0.3, 0.1, 0.1);
         line.geometry.setDirection(direction.normalize());
         line.geometry.position.copy(new THREE.Vector3().subVectors(line.startNode.node.position, diff));
+
+        const to = line.endNode.node.position.clone();
+        const from = line.startNode.node.position.clone();
+        const textPosition = from.multiplyScalar(0.25).add(to.clone().multiplyScalar(0.75));
+        line.textMesh.position.copy(textPosition);
     });
     event.object.userData.initialY = event.object.position.y;
 });
@@ -139,7 +170,7 @@ class TapeElement {
     constructor(text, verticalOffset, size) {
         this.text = text;
         this.geometry = new THREE.BoxGeometry(size.x, size.y, size.z);
-        this.material = new THREE.MeshBasicMaterial({ color: 0xcfcfcf });
+        this.material = new THREE.MeshBasicMaterial({ color: 0x7ec5e9 });
         this.mesh = new THREE.Mesh(this.geometry, this.material);
         this.mesh.position.setY(verticalOffset);
         tapeGroup.add(this.mesh);
@@ -147,7 +178,7 @@ class TapeElement {
         this.loadText();
 
         const borderGeometry = new THREE.EdgesGeometry(this.geometry);
-        const borderMaterial = new THREE.LineBasicMaterial({ color: 0x0f0f0f });
+        const borderMaterial = new THREE.LineBasicMaterial({ color: 0x2A4494 });
         const borderMesh = new THREE.LineSegments(borderGeometry, borderMaterial);
 
         this.mesh.add(borderMesh);
@@ -171,7 +202,7 @@ class TapeElement {
             textGeometry.computeBoundingBox();
             const textWidth = textGeometry.boundingBox.max.x - textGeometry.boundingBox.min.x;
             const textHeight = textGeometry.boundingBox.max.y - textGeometry.boundingBox.min.y;
-            const textMaterial = new THREE.MeshBasicMaterial({ color: 0x8f8f8f });
+            const textMaterial = new THREE.MeshBasicMaterial({ color: 0x111155 });
             this.textMesh = new THREE.Mesh(textGeometry, textMaterial);
             this.textMesh.position.x -= textWidth / 2;
             this.textMesh.position.y -= textHeight / 2;
@@ -190,7 +221,7 @@ class Tape {
         tapes.push(this);
         
         const indicatorGeometry = new THREE.BoxGeometry(size.x * 1.2, size.y * 1.2, size.z * 1.2);
-        const indicatorMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        const indicatorMaterial = new THREE.MeshBasicMaterial({ color: 0x5555bb });
         const indicatorMesh = new THREE.Mesh(indicatorGeometry, indicatorMaterial);
         this.indicator = indicatorMesh;
         tapeGroup.add(indicatorMesh);
@@ -280,6 +311,11 @@ export function initCanvas(turingMachineState) {
     nodes.length = 0;
     nodeMeshes.length = 0;
 
+    texts.forEach(text => {
+        graphGroup.remove(text);
+    });
+    texts.length = 0;
+
     tapes.forEach(tape => {
         tape.deleteTape();
         tapeGroup.remove(tape.indicator);
@@ -302,7 +338,7 @@ export function initCanvas(turingMachineState) {
 
     for (let fromState in turingMachineState.transFunct) {
         for (let fromValue in turingMachineState.transFunct[fromState]) {
-            connectNodesWithNames(fromState, turingMachineState.transFunct[fromState][fromValue].nextState);
+            connectNodesWithNames(fromState, turingMachineState.transFunct[fromState][fromValue].nextState, fromValue);
         }
     }
 

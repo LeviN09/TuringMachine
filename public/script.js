@@ -93,7 +93,7 @@ document.addEventListener("DOMContentLoaded", function() {
     speedSlider.addEventListener("input", setSpeed);
 
     function setSpeed() {
-        speedLabel.text = "Sebesség: " + speedSlider.value;
+        speedLabel.textContent = "Lépés sebessége: " + speedSlider.value + "ms";
         if (simulationStarted) {
             clearInterval(timer);
             timer = setInterval(step, speedSlider.value);
@@ -107,14 +107,16 @@ document.addEventListener("DOMContentLoaded", function() {
 
         tm.step();
         addStateEntry(tm.packageLogState());
-
+        
+        updateCanvas(tm.packageState());
         if (tm.isHalted() || tm.isOverLimit()) {
-            document.getElementById('result').innerText = `Szalag: ${tm.tapes[0].join('')}\nTerminált: ${tm.isHalted()}`;
+            const text = `Szalag: ${tm.tapes[0].join('')}\nTerminált: ${tm.isHalted()}`
+            document.getElementById('result').innerText = text;
+            alert(text);
             togglePlay();
             return;
         }
 
-        updateCanvas(tm.packageState());
     }
 
     function loadNewState(tmState) {
@@ -155,7 +157,9 @@ document.addEventListener("DOMContentLoaded", function() {
         while (!tm.isHalted() && !tm.isOverLimit()) {
             tm.step();
         }
-        document.getElementById('result').innerText = `Szalag: ${tm.tapes[0].join('')}\nTerminált: ${tm.isHalted()}`;
+        const text = `Szalag: ${tm.tapes[0].join('')}\nTerminált: ${tm.isHalted()}`
+        document.getElementById('result').innerText = text;
+        alert(text);
     }
 
     function parseTransitionFunction(transitionFunctionStr) {
