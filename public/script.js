@@ -1,4 +1,4 @@
-import { initCanvas, updateCanvas } from "./graphics.js";
+import { initCanvas, updateCanvas, updateCanvasSize } from "./graphics.js";
 
 document.addEventListener("DOMContentLoaded", function() {
     var turingMachines = [];
@@ -28,6 +28,21 @@ document.addEventListener("DOMContentLoaded", function() {
     const transitionFunctionText = document.getElementById('transitionFunctionText');
     const tape = document.getElementById('tape');
     const numTapesSelect = document.getElementById("numTapes");
+    const numTapesSelectBtn = document.getElementById("confirmTapeNumBtn");
+    var selectedTapeNum = numTapesSelect.value;
+
+    const toggleIcon = document.getElementById('toggle-icon');
+    const textFieldContainer = document.querySelector('.text-field-container');
+
+    toggleIcon.addEventListener('click', function() {
+        if (textFieldContainer.style.display === 'none') {
+            textFieldContainer.style.display = 'block';
+            updateCanvasSize(window.innerWidth / 1.5, window.innerHeight);
+        } else {
+            textFieldContainer.style.display = 'none';
+            updateCanvasSize(window.innerWidth, window.innerHeight);
+        }
+    });
 
     function packageInitState() {
         const selectedMethod = document.querySelector('input[name="inputMethod"]:checked').value;
@@ -43,7 +58,7 @@ document.addEventListener("DOMContentLoaded", function() {
         var defFinalStates = finalStates.value.split(',');
         var defTape = tape.value.split('');
         var defAlphabet = alphabet.value.split(',');
-        var defTapeNum = numTapesSelect.value;
+        var defTapeNum = selectedTapeNum;
 
         var defTapes = [];
         var defHeadPosis = [];
@@ -78,7 +93,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
     function togglePlay() {
         if (!simulationStarted) {
-            console.log(speedSlider.value);
             timer = setInterval(step, speedSlider.value);
             playButton.textContent = "⏸";
         }
@@ -105,15 +119,23 @@ document.addEventListener("DOMContentLoaded", function() {
     function step() {
         var tm = turingMachines[0];
 
-        tm.step();
-        addStateEntry(tm.packageLogState());
         
-        updateCanvas(tm.packageState());
-        if (tm.isHalted() || tm.isOverLimit()) {
+        if (tm.step()) {
+            addStateEntry(tm.packageLogState());
+            updateCanvas(tm.packageState());
+        }
+        else {
             const text = `Szalag: ${tm.tapes[0].join('')}\nTerminált: ${tm.isHalted()}`
             document.getElementById('result').innerText = text;
-            alert(text);
-            togglePlay();
+            if (tm.maxSteps != -1) {
+                alert(text);
+            }
+            else {
+                alert("A futás problémába ütközött, a gép nem megfelelően lett konfigurálva!");
+            }
+            if (simulationStarted) {
+                togglePlay();
+            }
             return;
         }
 
@@ -154,19 +176,23 @@ document.addEventListener("DOMContentLoaded", function() {
     function wholeSimulation() {
         var tm = turingMachines[0];
 
-        while (!tm.isHalted() && !tm.isOverLimit()) {
-            tm.step();
-        }
+        while (tm.step()) {}
+
         const text = `Szalag: ${tm.tapes[0].join('')}\nTerminált: ${tm.isHalted()}`
         document.getElementById('result').innerText = text;
-        alert(text);
+        if (tm.maxSteps != -1) {
+            alert(text);
+        }
+        else {
+            alert("A futás problémába ütközött, a gép nem megfelelően lett konfigurálva!");
+        }
     }
 
     function parseTransitionFunction(transitionFunctionStr) {
         const transitions = {};
         const lines = transitionFunctionStr.trim().split('\n');
         
-        const tapeNum = parseInt(numTapesSelect.value);
+        const tapeNum = parseInt(selectedTapeNum);
         for (var i = 0; i < lines.length; i += 2) {
             const identifierLine = lines[i].trim().split(/\s+/);
             const fromState = identifierLine[0];
@@ -270,7 +296,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
     function addStateEntry(state) {
         let newState = structuredClone(state);
-        console.log("hub", newState);
         turingMachineStates.push(newState);
         const listItem = document.createElement("li");
         listItem.textContent = state.tapes[0];
@@ -306,7 +331,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         const dirs = ['L', 'S', 'R'];
 
-        const tapeNum = parseInt(numTapesSelect.value);
+        const tapeNum = parseInt(selectedTapeNum);
 
         for (let i = 0; i < tapeNum; i++) {
             let needBr = i ===  tapeNum - 1;
@@ -359,10 +384,13 @@ document.addEventListener("DOMContentLoaded", function() {
 
     addTransitionBtn.addEventListener("click", addTransitionEntry);
 
-    numTapesSelect.addEventListener("input", setNumTapes);
-    delTransButton.addEventListener("click", setNumTapes);
+    numTapesSelectBtn.addEventListener("click", setNumTapes);
+    delTransButton.addEventListener("click", () => {
+        transitionList.innerHTML = "";
+    });
 
     function setNumTapes() {
+        selectedTapeNum = numTapesSelect.value;
         transitionList.innerHTML = "";
     }
 

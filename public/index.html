@@ -12,6 +12,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/20.0.0/tween.umd.js"></script>
 </head>
 <body>
+    <div id="toggle-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40">
+            <path d="M0 0h24v24H0z" fill="none"/>
+            <path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/>
+        </svg>
+    </div>
     <div class="text-field-container" style="overflow:scroll; height: 100vh;">
         <h1>Turing-gép szimulálás</h1>
         <div>
@@ -37,11 +43,13 @@
                 <option value="2">2</option>
                 <option value="3">3</option>
             </select>
+            <button id="confirmTapeNumBtn">Szalagszám váltása</button>
+            <label title="Váltáskor a megadott szabályok törlésre kerülnek!">&#9432;</label>
         </div>
         
         <div>
             <label for="tape">Kezdőszalag:</label>
-            <input type="text" id="tape">
+            <input type="text" id="tape" value="_">
         </div>
         <br>
         <div>
@@ -70,7 +78,7 @@
         <button id="play-button">⏵</button>
         <div class="slidecontainer">
             <label id="speed-label">Lépés sebessége: 500ms</label>
-            <input type="range" min="0" max="5000" value="500" class="slider" id="step-speed">
+            <input type="range" min="100" max="5000" value="500" class="slider" id="step-speed">
         </div>
         <button id="whole-simulation-button">Gyors eredmény</button>
         <div id="result"></div>

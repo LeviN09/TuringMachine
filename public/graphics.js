@@ -15,7 +15,7 @@ const maxYPosition = -0.75;//(canvasHeight / 3) * 2;
 const cameraWidth = 8;
 const cameraHeight = cameraWidth / aspect;
 
-const camera = new THREE.OrthographicCamera(
+var camera = new THREE.OrthographicCamera(
     cameraWidth / -2,   // Left
     cameraWidth / 2,    // Right
     cameraHeight / 2,   // Top
@@ -233,7 +233,7 @@ class Tape {
         for (let i = 0; i < text.length; ++i) {
             this.addElementFront(text.charAt(i));
         }
-        for (let i = 0; i < 10; ++i) {
+        for (let i = 0; i < 15; ++i) {
             this.addElementBack('');
             this.addElementFront('');
         }
@@ -288,7 +288,33 @@ class Tape {
     }
 }
 
-renderer.setClearColor(0xffffff);
+var textMesh;
+
+function loadRuleText(text) {
+    if (textMesh) {
+        graphGroup.remove(textMesh);
+    }
+
+    const loader = new FontLoader();
+    loader.load('./resources/Madimi One_Regular.json', function(font) {
+        const textGeometry = new TextGeometry(text, {
+            font: font,
+            size: 0.1,
+            height: 1,
+            curveSegments: 12
+        });
+        const textMaterial = new THREE.MeshBasicMaterial({ color: 0x000066 });
+        textMesh = new THREE.Mesh(textGeometry, textMaterial);
+
+        textGeometry.computeBoundingBox();
+        const textWidth = textGeometry.boundingBox.max.x - textGeometry.boundingBox.min.x;
+        textMesh.position.set(-textWidth / 2, 2.75, 0);
+
+        graphGroup.add(textMesh);
+    });
+}
+
+renderer.setClearColor(0xddddee);
 function animate() {
     requestAnimationFrame(animate);
     TWEEN.update();
@@ -361,6 +387,8 @@ export function initCanvas(turingMachineState) {
 }
 
 export function updateCanvas(turingMachineState) {
+    loadRuleText("Alkalmazott szabály:\n" + turingMachineState.lastRule);
+
     for (var i = 0; i < turingMachineState.tapeNum; ++i) {
         tapes[i].elements[tapes[i].offset].changeText(turingMachineState.lastWrittens[i]);
         if (turingMachineState.lastMoves[i] === 'R') {
@@ -381,4 +409,18 @@ export function updateCanvas(turingMachineState) {
             node.node.material.color = new THREE.Color(0x123456);
         }
     });
+}
+
+export function updateCanvasSize(newCanvasWidth, newCanvasHeight) {
+    
+    renderer.setSize(newCanvasWidth, newCanvasHeight);
+    const newAspectRatio = newCanvasWidth / newCanvasHeight;
+    const zoomRatio = 3;
+
+    camera.left = -newAspectRatio * zoomRatio;
+    camera.right = newAspectRatio * zoomRatio;
+    camera.top = zoomRatio;
+    camera.bottom = -zoomRatio;
+    camera.updateProjectionMatrix();
+
 }

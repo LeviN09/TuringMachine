@@ -3,5 +3,19 @@
     "body-parser": "^1.20.2",
     "express": "^4.18.3",
     "three": "^0.162.0"
+  },
+  "name": "turing-machine",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "jest",
+    "server": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^29.7.0"
   }
 }
