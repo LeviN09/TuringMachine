@@ -107,7 +107,6 @@ class Line {
             graphGroup.add(this.textMesh);
             texts.push(this.textMesh);
         });
-        console.log("hoy");
         graphGroup.add(this.geometry);
         lines.push(this);
     }
