@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", function() {
     var turingMachines = [];
     var simulationStarted = false;
 
-    const logList = document.getElementById("logList");
+    const logList = document.getElementById("log-list");
     let turingMachineStates = [];
 
     let timer = 0;
@@ -16,19 +16,19 @@ document.addEventListener("DOMContentLoaded", function() {
     const playButton = document.getElementById('play-button');
     const wholeSimButton = document.getElementById('whole-simulation-button');
     const delLogButton = document.getElementById('delete-log-button');
-    const delTransButton = document.getElementById('clearTransitionList');
+    const delTransButton = document.getElementById('clear-transition-list-button');
 
     const speedLabel = document.getElementById('speed-label');
     const speedSlider = document.getElementById('step-speed');
 
     const states = document.getElementById('states');
     const alphabet = document.getElementById('alphabet');
-    const initialState = document.getElementById('initialState');
-    const finalStates = document.getElementById('finalStates');
-    const transitionFunctionText = document.getElementById('transitionFunctionText');
+    const initialState = document.getElementById('initial-state');
+    const finalStates = document.getElementById('final-states');
+    const transitionFunctionText = document.getElementById('transition-function-text');
     const tape = document.getElementById('tape');
-    const numTapesSelect = document.getElementById("numTapes");
-    const numTapesSelectBtn = document.getElementById("confirmTapeNumBtn");
+    const numTapesSelect = document.getElementById("num-tapes");
+    const numTapesSelectBtn = document.getElementById("confirm-tape-num-btn");
     var selectedTapeNum = numTapesSelect.value;
 
     const toggleIcon = document.getElementById('toggle-icon');
@@ -62,11 +62,13 @@ document.addEventListener("DOMContentLoaded", function() {
 
         var defTapes = [];
         var defHeadPosis = [];
-        defTapes[0] = defTape;
-        defHeadPosis[0] = 0;
-        for (var i = 1; i < defTapeNum; ++i) {
+        
+        for (var i = 0; i < defTapeNum; ++i) {
             defTapes[i] = ['_'];
             defHeadPosis[i] = 0;
+        }
+        if (defTape.length != 0) {
+            defTapes[0] = defTape;
         }
 
         let turingMachineState = {
@@ -227,10 +229,10 @@ document.addEventListener("DOMContentLoaded", function() {
     function saveConfiguration() {
         const configuration = {
             states: document.getElementById('states').value.split(','),
-            startState: document.getElementById('initialState').value,
-            endState: document.getElementById('finalStates').value.split(','),
+            startState: document.getElementById('initial-state').value,
+            endState: document.getElementById('final-states').value.split(','),
             alphabet: document.getElementById('alphabet').value.split(','),
-            transitionFunction: document.getElementById('transitionFunctionText').value
+            transitionFunction: document.getElementById('transition-function-text').value
         };
 
         const json = JSON.stringify(configuration, null, 2);
@@ -259,10 +261,10 @@ document.addEventListener("DOMContentLoaded", function() {
                 const configuration = JSON.parse(json);
 
                 document.getElementById('states').value = configuration.states.join(',');
-                document.getElementById('initialState').value = configuration.startState;
-                document.getElementById('finalStates').value = configuration.endState.join(',');
+                document.getElementById('initial-state').value = configuration.startState;
+                document.getElementById('final-states').value = configuration.endState.join(',');
                 document.getElementById('alphabet').value = configuration.alphabet.join(',');
-                document.getElementById('transitionFunctionText').value = configuration.transitionFunction;
+                document.getElementById('transition-function-text').value = configuration.transitionFunction;
             };
 
             reader.readAsText(file);
@@ -271,8 +273,8 @@ document.addEventListener("DOMContentLoaded", function() {
         input.click();
     }
 
-    const inputMethodDropdowns = document.getElementById("transitionFunctionDropdowns");
-    const inputMethodText = document.getElementById("transitionFunctionText");
+    const inputMethodDropdowns = document.getElementById("transition-function-dropdowns");
+    const inputMethodText = document.getElementById("transition-function-text");
 
     function toggleInputMethod() {
         const selectedMethod = document.querySelector('input[name="inputMethod"]:checked').value;
@@ -315,15 +317,15 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
 
-    const transitionList = document.getElementById("transitionList");
-    const addTransitionBtn = document.getElementById("addTransitionBtn");
+    const transitionList = document.getElementById("transition-list");
+    const addTransitionBtn = document.getElementById("add-transition-btn");
 
     function addTransitionEntry() {
         const listItem = document.createElement("li");
-        listItem.setAttribute("class", "transitionListItem")
+        listItem.setAttribute("class", "transition-list-item")
 
-        const fromStateSelect = createSelectInput("fromState", "fromState", states.value.split(','), false, false);
-        const toStateSelect = createSelectInput("toState", "toState", states.value.split(','), false, false);
+        const fromStateSelect = createSelectInput("from-state", "from-state", states.value.split(','), false, false);
+        const toStateSelect = createSelectInput("to-state", "to-state", states.value.split(','), false, false);
 
         const fromLettersSelects = [];
         const toLettersSelects = [];
@@ -335,9 +337,9 @@ document.addEventListener("DOMContentLoaded", function() {
 
         for (let i = 0; i < tapeNum; i++) {
             let needBr = i ===  tapeNum - 1;
-            const fromLetterSelect = createSelectInput(`fromLetter${i}`, "fromLetter", alphabet.value.split(','), needBr, true);
-            const toLetterSelect = createSelectInput(`toLetter${i}`, "toLetter", alphabet.value.split(','), false, true);
-            const moveDirectionSelect = createSelectInput(`fromLetter${i}`, "moveDir", dirs, needBr, false);
+            const fromLetterSelect = createSelectInput(`from-letter${i}`, "from-letter", alphabet.value.split(','), needBr, true);
+            const toLetterSelect = createSelectInput(`to-letter${i}`, "to-letter", alphabet.value.split(','), false, true);
+            const moveDirectionSelect = createSelectInput(`from-letter${i}`, "move-dir", dirs, needBr, false);
             fromLettersSelects.push(fromLetterSelect);
             toLettersSelects.push(toLetterSelect);
             moveDirectionSelects.push(moveDirectionSelect);
@@ -395,20 +397,20 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     document.addEventListener("click", function(event) {
-        if (event.target && event.target.classList.contains("removeTransitionLineBtn")) {
+        if (event.target && event.target.classList.contains("remove-transition-line-btn")) {
             event.target.parentElement.remove();
         }
     });
 
     states.addEventListener("input", function() {
-        const stateSelects = document.querySelectorAll("#fromState, #toState");
+        const stateSelects = document.querySelectorAll("#from-state, #to-state");
         stateSelects.forEach(select => {
             updateSelectableList(states, select);
         });
     });
 
     alphabet.addEventListener("input", function() {
-        const letterSelects = document.querySelectorAll(".fromLetter, .toLetter");
+        const letterSelects = document.querySelectorAll(".from-letter, .to-letter");
         letterSelects.forEach(select => {
             updateSelectableList(alphabet, select);
             addBlank(select);
@@ -436,27 +438,27 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 function stringifyTransitionFunction() {
-    const transitionFunctionDiv = document.getElementById("transitionList");
+    const transitionFunctionDiv = document.getElementById("transition-list");
     let transitionLines = "";
-    const transitionLineElements = transitionFunctionDiv.querySelectorAll(".transitionListItem");
+    const transitionLineElements = transitionFunctionDiv.querySelectorAll(".transition-list-item");
     transitionLineElements.forEach(line => {
-        const fromStateSelect = line.querySelector("#fromState").value;
-        const toStateSelect = line.querySelector("#toState").value;
+        const fromStateSelect = line.querySelector("#from-state").value;
+        const toStateSelect = line.querySelector("#to-state").value;
         
         const fromLetters = [];
-        const fromLettersSelect = line.querySelectorAll(".fromLetter");
+        const fromLettersSelect = line.querySelectorAll(".from-letter");
         fromLettersSelect.forEach(letter => {
             fromLetters.push(letter.value);
         });
 
         const toLetters = [];
-        const toLettersSelect = line.querySelectorAll(".toLetter");
+        const toLettersSelect = line.querySelectorAll(".to-letter");
         toLettersSelect.forEach(letter => {
             toLetters.push(letter.value);
         });
 
         const moveDirs = [];
-        const moveDirSelect = line.querySelectorAll(".moveDir");
+        const moveDirSelect = line.querySelectorAll(".move-dir");
         moveDirSelect.forEach(dir => {
             moveDirs.push(dir.value);
         });

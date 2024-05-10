@@ -26,6 +26,7 @@ body {
     font-family: Arial, sans-serif;
     background-color: #ddddee;
 }
+
 .text-field-container {
     flex: 1;
     padding-left: 20px;
@@ -34,6 +35,7 @@ body {
     background-color: #4ea5d9;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
+
 .canvas-container {
     flex: 0;
     position: relative;
@@ -41,7 +43,8 @@ body {
     height: calc(100vh - 40px);
     overflow: hidden;
 }
-#transitionFunctionText {
+
+#transition-function-text {
     min-width: 300px;
     max-width: 500px;
 }
@@ -130,16 +133,16 @@ canvas {
     height: 100%;
 }
 
-#transitionList {
+#transition-list {
     padding: 0;
     margin: 0;
 }
 
-#logPanel {
+#log-panel {
     margin-top: 20px;
 }
 
-#logList {
+#log-list {
     list-style-type: none;
     padding: 0;
     margin: 0;

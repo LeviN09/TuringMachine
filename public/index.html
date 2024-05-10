@@ -30,30 +30,30 @@
         </div>
         <div>
             <label for="initialState">Kezdőállapot:</label>
-            <input type="text" id="initialState">
+            <input type="text" id="initial-state">
         </div>
         <div>
             <label for="finalStates">Végállapotok:</label>
-            <input type="text" id="finalStates">
+            <input type="text" id="final-states">
         </div>
-        <div id="tapesSection">
-            <label for="numTapes">Szalagok száma:</label>
-            <select id="numTapes">
+        <div id="tapes-section">
+            <label for="num-tapes">Szalagok száma:</label>
+            <select id="num-tapes">
                 <option value="1">1</option>
                 <option value="2">2</option>
                 <option value="3">3</option>
             </select>
-            <button id="confirmTapeNumBtn">Szalagszám váltása</button>
+            <button id="confirm-tape-num-btn">Szalagszám váltása</button>
             <label title="Váltáskor a megadott szabályok törlésre kerülnek!">&#9432;</label>
         </div>
         
         <div>
             <label for="tape">Kezdőszalag:</label>
-            <input type="text" id="tape" value="_">
+            <input type="text" id="tape" value="">
         </div>
         <br>
         <div>
-            <h3 for="transitionFunction">Delta függvény:</h3>
+            <h3 for="transition-function">Delta függvény:</h3>
             <div>
                 <label>
                     <input type="radio" name="inputMethod" value="dropdowns" checked> Kiválasztás
@@ -63,13 +63,13 @@
                 </label>
             </div>
             <div>
-                <div id="transitionFunctionDropdowns">
-                    <button id="addTransitionBtn">Új sor hozzáadása</button>
-                    <button id="clearTransitionList">Sorok törlése</button>
-                    <ul id="transitionList" style="overflow:scroll; height:200px;">
+                <div id="transition-function-dropdowns">
+                    <button id="add-transition-btn">Új sor hozzáadása</button>
+                    <button id="clear-transition-list-button">Sorok törlése</button>
+                    <ul id="transition-list" style="overflow:scroll; height:200px;">
                     </ul>
                 </div>
-                <textarea id="transitionFunctionText" style="display: none;" placeholder="q0 _ _&#10;q1 a b R L"></textarea>
+                <textarea id="transition-function-text" style="display: none;" placeholder="q0 _ _&#10;q1 a b R L"></textarea>
             </div>
         </div>
         <br>
@@ -85,10 +85,10 @@
         <button id="save-button">Konfiguráció letöltése</button>
         <button id="load-button">Konfiguráció betöltése</button>
         
-        <div id="logPanel">
+        <div id="log-panel">
             <h3>Log Panel</h3>
             <button id="delete-log-button">Törlés</button>
-            <ul id="logList" style="overflow:scroll; height:200px;">
+            <ul id="log-list" style="overflow:scroll; height:200px;">
             </ul>
         </div>
         
