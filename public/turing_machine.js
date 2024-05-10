@@ -84,7 +84,7 @@ class TuringMachine {
             return true;
         }
         catch (error) {
-            console.log(error);
+            console.error(error);
             this.maxSteps = -1;
             return false;
         }
