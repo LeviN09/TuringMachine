@@ -5,11 +5,14 @@ textarea {
 }
 
 button {
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: #fff;
+    padding: 10px;
+    margin-top: 10px;
     border: none;
+    border-radius: 5px;
     cursor: pointer;
+    background-color: #2A4494;
+    color: #ffffff;
+    font-size: 16px;
 }
 
 button:hover {
@@ -20,18 +23,23 @@ body {
     margin: 0;
     padding: 0;
     display: flex;
+    font-family: Arial, sans-serif;
+    background-color: #ddddee;
 }
 .text-field-container {
     flex: 1;
     padding-left: 20px;
     padding-right: 20px;
-    background-color: #f0f0f0;
+    border-radius: 0 10px 10px 0;
+    background-color: #4ea5d9;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 .canvas-container {
     flex: 0;
-    position:absolute;
-    width: 0;
-    height: 0;
+    position: relative;
+    width: 100%;
+    height: calc(100vh - 40px);
+    overflow: hidden;
 }
 #transitionFunctionText {
     min-width: 300px;
@@ -40,6 +48,7 @@ body {
 
 .slidecontainer {
   width: 100%;
+  margin-top: 10px;
 }
 
 .slider {
@@ -74,19 +83,6 @@ body {
   cursor: pointer;
 }
 
-body {
-    font-family: Arial, sans-serif;
-    background-color: #ddddee;
-    margin: 0;
-    padding: 0;
-}
-
-.text-field-container {
-    border-radius: 0 10px 10px 0;
-    background-color: #4ea5d9;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
 h1 {
     text-align: right;
 }
@@ -117,17 +113,6 @@ input[type="text"], select {
     color: #111155;
 }
 
-button {
-    padding: 10px;
-    margin-top: 10px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    background-color: #2A4494;
-    color: #ffffff;
-    font-size: 16px;
-}
-
 textarea {
     width: 100%;
     height: 100px;
@@ -143,13 +128,6 @@ textarea {
 canvas {
     width: 100%;
     height: 100%;
-}
-
-.canvas-container {
-    position: relative;
-    width: 100%;
-    height: calc(100vh - 40px);
-    overflow: hidden;
 }
 
 #transitionList {
@@ -168,14 +146,6 @@ canvas {
     overflow-y: auto;
 }
 
-.slidecontainer {
-    margin-top: 10px;
-}
-
-.slider {
-    width: 100%;
-}
-
 #result {
     margin-top: 20px;
     padding: 10px;
@@ -185,7 +155,7 @@ canvas {
     color: #111155;
     font-weight: bold;
 }
-/* Styling for toggle icon */
+
 #toggle-icon {
     position: absolute;
     top: 20px;
@@ -193,12 +163,12 @@ canvas {
     width: 40px;
     height: 40px;
     cursor: pointer;
-    z-index: 1000; /* Ensure it's above other content */
-    fill: #ffffff; /* White icon color */
+    z-index: 1000;
+    fill: #ffffff;
     background-color: #111155;
     border-radius: 5px;
 }
 
 #toggle-icon:hover {
-    opacity: 0.7; /* Reduce opacity on hover for visual feedback */
+    opacity: 0.7;
 }
