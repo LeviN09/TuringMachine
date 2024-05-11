@@ -255,21 +255,23 @@ document.addEventListener("DOMContentLoaded", function() {
         input.onchange = function(event) {
             const file = event.target.files[0];
             const reader = new FileReader();
-
             reader.onload = function() {
-                const json = reader.result;
-                const configuration = JSON.parse(json);
-
-                document.getElementById('states').value = configuration.states.join(',');
-                document.getElementById('initial-state').value = configuration.startState;
-                document.getElementById('final-states').value = configuration.endState.join(',');
-                document.getElementById('alphabet').value = configuration.alphabet.join(',');
-                document.getElementById('transition-function-text').value = configuration.transitionFunction;
+                try {
+                    const json = reader.result;
+                    const configuration = JSON.parse(json);
+                    document.getElementById('states').value = configuration.states.join(',');
+                    document.getElementById('initial-state').value = configuration.startState;
+                    document.getElementById('final-states').value = configuration.endState.join(',');
+                    document.getElementById('alphabet').value = configuration.alphabet.join(',');
+                    document.getElementById('transition-function-text').value = configuration.transitionFunction;
+                }
+                catch (error) {
+                    console.error(error);
+                    alert("A betöltés hibába ütközött. Ellenőrizze a helyes fájlformátumot!");
+                }
             };
-
             reader.readAsText(file);
         };
-
         input.click();
     }
 
