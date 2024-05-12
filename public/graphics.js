@@ -84,6 +84,8 @@ class Line {
         this.geometry = new THREE.ArrowHelper(direction.normalize(), new THREE.Vector3().subVectors(startNode.node.position, diff), direction.length() - 0.3, 0x0f0f0f, 0.1, 0.1);
 
         this.text = text;
+        this.textWidth = 0;
+        this.textHeight = 0;
         const loader = new FontLoader();
         loader.load('./resources/Madimi One_Regular.json', (font) => {
             const textGeometry = new TextGeometry(text, {
@@ -92,14 +94,14 @@ class Line {
                 height: 0.01
             });
             textGeometry.computeBoundingBox();
-            const textWidth = textGeometry.boundingBox.max.x - textGeometry.boundingBox.min.x;
-            const textHeight = textGeometry.boundingBox.max.y - textGeometry.boundingBox.min.y;
+            this.textWidth = textGeometry.boundingBox.max.x - textGeometry.boundingBox.min.x;
+            this.textHeight = textGeometry.boundingBox.max.y - textGeometry.boundingBox.min.y;
             const textMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
     
             this.textMesh = new THREE.Mesh(textGeometry, textMaterial);
             const to = endNode.node.position.clone();
             const from = startNode.node.position.clone();
-            const textPosition = from.multiplyScalar(0.25).add(to.clone().multiplyScalar(0.75));
+            const textPosition = from.multiplyScalar(0.3).add(to.clone().multiplyScalar(0.7)).sub(new THREE.Vector3(this.textWidth / 2, this.textHeight / 2, 0));
 
             this.textMesh.position.clone(textPosition);
             this.textMesh.material.pointerEvents = false;
@@ -121,8 +123,7 @@ function connectNodesWithNames(name1, name2, text) {
         return;
     }
     lines.forEach(line => {
-        if ((line.startNode.text == name1 && line.endNode.text == name2) ||
-        (line.endNode.text == name1 && line.startNode.text == name2)) {
+        if (line.startNode.text == name1 && line.endNode.text == name2) {
             return;
         }
     });
@@ -156,7 +157,7 @@ dragControls.addEventListener('drag', function onDrag(event) {
 
         const to = line.endNode.node.position.clone();
         const from = line.startNode.node.position.clone();
-        const textPosition = from.multiplyScalar(0.25).add(to.clone().multiplyScalar(0.75));
+        const textPosition = from.multiplyScalar(0.3).add(to.clone().multiplyScalar(0.7)).sub(new THREE.Vector3(line.textWidth / 2, line.textHeight / 2, 0));
         line.textMesh.position.copy(textPosition);
     });
     event.object.userData.initialY = event.object.position.y;
@@ -361,9 +362,23 @@ export function initCanvas(turingMachineState) {
         }
     });
 
+    const arrowTexts = {};
     for (let fromState in turingMachineState.transFunct) {
         for (let fromValue in turingMachineState.transFunct[fromState]) {
-            connectNodesWithNames(fromState, turingMachineState.transFunct[fromState][fromValue].nextState, fromValue);
+            if (!arrowTexts[fromState]) {
+                arrowTexts[fromState] = {};
+            }
+
+            var next = turingMachineState.transFunct[fromState][fromValue].nextState;
+            if (!arrowTexts[fromState][next]) {
+                arrowTexts[fromState][next] = [];
+            }
+            arrowTexts[fromState][next].push(fromValue);
+        }
+    }
+    for (let from in arrowTexts) {
+        for (let to in arrowTexts[from]) {
+            connectNodesWithNames(from, to, arrowTexts[from][to].join('\n'));
         }
     }
 
