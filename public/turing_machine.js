@@ -6,7 +6,7 @@ class TuringMachine {
         this.currentState = initialState;
         this.finalStates = finalStates;
         this.lastRule = "";
-        this.tapeNum = tapeNum;
+        this.tapeNum = parseInt(tapeNum);
         this.tapes = [];
         this.headPositions = headPositions;
         this.lastWrittens = [];
