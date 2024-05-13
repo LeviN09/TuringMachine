@@ -195,6 +195,12 @@ document.addEventListener("DOMContentLoaded", function() {
         const lines = transitionFunctionStr.trim().split('\n');
         
         const tapeNum = parseInt(selectedTapeNum);
+
+        if (lines.length == 0 || lines.length % 2 == 1) {
+            alert("A delta függvény helytelenül lett megadva!");
+            return {};
+        }
+
         for (var i = 0; i < lines.length; i += 2) {
             const identifierLine = lines[i].trim().split(/\s+/);
             const fromState = identifierLine[0];

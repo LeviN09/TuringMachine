@@ -350,53 +350,71 @@ export function initCanvas(turingMachineState) {
 
     //--------------------------------------------
 
-    let i = 0;
-    turingMachineState.states.forEach(state => {
-        new Node(i, 0, 0, 0x123456, state);
-        ++i;
-    });
+    try {
+        let i = 0;
+        turingMachineState.states.forEach(state => {
+            new Node(i, 0, 0, 0x123456, state);
+            ++i;
+        });
 
-    nodes.forEach(node => {
-        if (node.text == turingMachineState.initState) {
-            node.node.material.color = new THREE.Color(0xff00ff);
-        }
-    });
-
-    const arrowTexts = {};
-    for (let fromState in turingMachineState.transFunct) {
-        for (let fromValue in turingMachineState.transFunct[fromState]) {
-            if (!arrowTexts[fromState]) {
-                arrowTexts[fromState] = {};
+        nodes.forEach(node => {
+            if (node.text == turingMachineState.initState) {
+                node.node.material.color = new THREE.Color(0xff00ff);
             }
-
-            var next = turingMachineState.transFunct[fromState][fromValue].nextState;
-            if (!arrowTexts[fromState][next]) {
-                arrowTexts[fromState][next] = [];
-            }
-            arrowTexts[fromState][next].push(fromValue);
-        }
+        });
     }
-    for (let from in arrowTexts) {
-        for (let to in arrowTexts[from]) {
-            connectNodesWithNames(from, to, arrowTexts[from][to].join('\n'));
-        }
+    catch (error) {
+        console.error(error);
+        alert("Csúcsok generálása hibába ütközött!");
     }
 
-    for (var j = 0; j < turingMachineState.tapeNum; ++j) {
-        const tape = new Tape(new THREE.Vector3(0, -1.2 - j * 0.7, 0), new THREE.Vector3(0.5, 0.5, 0.5));
+    try {
+        const arrowTexts = {};
+        for (let fromState in turingMachineState.transFunct) {
+            for (let fromValue in turingMachineState.transFunct[fromState]) {
+                if (!arrowTexts[fromState]) {
+                    arrowTexts[fromState] = {};
+                }
+
+                var next = turingMachineState.transFunct[fromState][fromValue].nextState;
+                if (!arrowTexts[fromState][next]) {
+                    arrowTexts[fromState][next] = [];
+                }
+                arrowTexts[fromState][next].push(fromValue);
+            }
+        }
+        for (let from in arrowTexts) {
+            for (let to in arrowTexts[from]) {
+                connectNodesWithNames(from, to, arrowTexts[from][to].join('\n'));
+            }
+        }
+    }
+    catch (error) {
+        console.error(error);
+        alert("Csúcsok összekötése hibába ütközött!");
+    }
+
+    try {
+        for (var j = 0; j < turingMachineState.tapeNum; ++j) {
+            const tape = new Tape(new THREE.Vector3(0, -1.2 - j * 0.7, 0), new THREE.Vector3(0.5, 0.5, 0.5));
+            
+            tape.initTape(turingMachineState.tapes[j].join(''));
         
-        tape.initTape(turingMachineState.tapes[j].join(''));
-
-        if (turingMachineState.headPosis[j] > 0) {
-            for (var k = 0; k < turingMachineState.headPosis[j]; ++k) {
-                tape.shiftLeft();
+            if (turingMachineState.headPosis[j] > 0) {
+                for (var k = 0; k < turingMachineState.headPosis[j]; ++k) {
+                    tape.shiftLeft();
+                }
+            }
+            else {
+                for (var k = 0; k > turingMachineState.headPosis[j]; --k) {
+                    tape.shiftRight();
+                }
             }
         }
-        else {
-            for (var k = 0; k > turingMachineState.headPosis[j]; --k) {
-                tape.shiftRight();
-            }
-        }
+    }
+    catch (error) {
+        console.error(error);
+        alert("Szalag generálása hibába ütközött!");
     }
 }
 
