@@ -402,6 +402,7 @@ document.addEventListener("DOMContentLoaded", function() {
     function setNumTapes() {
         selectedTapeNum = numTapesSelect.value;
         transitionList.innerHTML = "";
+        alert("A szalagszám mostantól a következő: " + numTapesSelect.value);
     }
 
     document.addEventListener("click", function(event) {
