@@ -1,3 +1,4 @@
+//Szerver inicializálása
 const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
@@ -6,6 +7,7 @@ const port = 3000;
 
 app.use(bodyParser.json());
 
+//Kiszolgálás
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.listen(port, () => {

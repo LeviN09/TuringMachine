@@ -3,6 +3,7 @@ import { DragControls } from './resources/DragControls.js';
 import { FontLoader } from './resources/FontLoader.js';
 import { TextGeometry } from './resources/TextGeometry.js';
 
+//Jelenet inicializálása
 const scene = new THREE.Scene();
 
 const canvasWidth = window.innerWidth / 1.5;
@@ -24,6 +25,7 @@ var camera = new THREE.OrthographicCamera(
     1000               // Far
 );
 
+//Csoportok inicializálása
 const graphGroup = new THREE.Group();
 scene.add(graphGroup);
 
@@ -33,9 +35,18 @@ scene.add(tapeGroup);
 camera.position.set(0, 0, 8);
 camera.lookAt(0, 0, 0);
 
+//Renderelés kérése
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(canvasWidth, canvasHeight);
 document.body.appendChild(renderer.domElement);
+renderer.setClearColor(0xddddee);
+
+function animate() {
+    requestAnimationFrame(animate);
+    TWEEN.update();
+    renderer.render(scene, camera);
+}
+animate();
 
 const nodes = [];
 const nodeMeshes = [];
@@ -43,6 +54,7 @@ const lines = [];
 const tapes = [];
 const texts = [];
 
+//Gráfcsúcs osztály
 class Node {
     constructor(x, y, z, color, text) {
         this.geometry = new THREE.CircleGeometry(0.3, 32, 32);
@@ -75,6 +87,7 @@ class Node {
     }
 }
 
+//Irányított él osztály
 const diff = new THREE.Vector3(0, 0, 0.5);
 class Line {
     constructor(startNode, endNode, text) {
@@ -114,10 +127,12 @@ class Line {
     }
 }
 
+//Csúcsok összekötése
 function connectNodes(node1, node2, text) {
     var line = new Line(node1, node2, text);
 }
 
+//Csúcsok összekötése név alapján
 function connectNodesWithNames(name1, name2, text) {
     if (name1 == name2) {
         return;
@@ -142,8 +157,8 @@ function connectNodesWithNames(name1, name2, text) {
     connectNodes(node1, node2, text);
 }
 
+//Gráf frissítése mozgatás miatt
 const dragControls = new DragControls(nodeMeshes, camera, renderer.domElement);
-
 dragControls.addEventListener('drag', function onDrag(event) {
     if (event.object.position.y < maxYPosition) {
         event.object.position.y = event.object.userData.initialY;
@@ -166,6 +181,7 @@ dragControls.addEventListener('drag', function onDrag(event) {
 
 //-----------------------------------------------------------
 
+//Cella osztály
 class TapeElement {
     constructor(text, verticalOffset, size) {
         this.text = text;
@@ -212,6 +228,7 @@ class TapeElement {
     }
 }
 
+//Szalag osztály
 class Tape {
     constructor(position, size) {
         this.position = position;
@@ -245,12 +262,14 @@ class Tape {
         });
     }
 
+    //Cella hozzáadása előre
     addElementFront(text) {
         const element = new TapeElement(text, this.position.y, this.size);
         this.elements.push(element);
         this.updatePos();
     }
 
+    //Cella hozzáadása hátra
     addElementBack(text) {
         const element = new TapeElement(text, this.position.y, this.size);
         this.elements.splice(0, 0, element);
@@ -258,11 +277,13 @@ class Tape {
         this.updatePos();
     }
 
+    //Mozgás jobbra
     shiftRight() {
         this.offset -= 1;
         this.updatePosWithAnimation();
     }
 
+    //Mozgás balra
     shiftLeft() {
         this.offset += 1;
         this.updatePosWithAnimation();
@@ -275,6 +296,7 @@ class Tape {
         }
     }
 
+    //Szalag animált frissítése
     updatePosWithAnimation() {
         for (var i = 0; i < this.elements.length; ++i) {
             var newPos = new THREE.Vector3((i - this.offset) * this.size.x,
@@ -288,8 +310,8 @@ class Tape {
     }
 }
 
+//Legutóbb használt szabály szövege
 var textMesh;
-
 function loadRuleText(text) {
     if (textMesh) {
         graphGroup.remove(textMesh);
@@ -314,17 +336,13 @@ function loadRuleText(text) {
     });
 }
 
-renderer.setClearColor(0xddddee);
-function animate() {
-    requestAnimationFrame(animate);
-    TWEEN.update();
-    renderer.render(scene, camera);
-}
-animate();
+//-----------------------------------------------------------
 
+//Alap (nem használt, csak vizuális) szalag
 const tape1 = new Tape(new THREE.Vector3(0, -1.2, 0), new THREE.Vector3(0.5, 0.5, 0.5));
 tape1.initTape("");
 
+//Jelenet inicializálása
 export function initCanvas(turingMachineState) {
     lines.forEach(line => {
         graphGroup.remove(line.geometry);
@@ -347,8 +365,6 @@ export function initCanvas(turingMachineState) {
         tapeGroup.remove(tape.indicator);
     });
     tapes.length = 0;
-
-    //--------------------------------------------
 
     try {
         let i = 0;
@@ -397,9 +413,9 @@ export function initCanvas(turingMachineState) {
     try {
         for (var j = 0; j < turingMachineState.tapeNum; ++j) {
             const tape = new Tape(new THREE.Vector3(0, -1.2 - j * 0.7, 0), new THREE.Vector3(0.5, 0.5, 0.5));
-            
+
             tape.initTape(turingMachineState.tapes[j].join(''));
-        
+
             if (turingMachineState.headPosis[j] > 0) {
                 for (var k = 0; k < turingMachineState.headPosis[j]; ++k) {
                     tape.shiftLeft();
@@ -418,6 +434,7 @@ export function initCanvas(turingMachineState) {
     }
 }
 
+//Jelenet frissítése
 export function updateCanvas(turingMachineState) {
     loadRuleText("Alkalmazott szabály:\n" + turingMachineState.lastRule);
 
@@ -443,6 +460,7 @@ export function updateCanvas(turingMachineState) {
     });
 }
 
+//Megjelenítési méret frissítése
 export function updateCanvasSize(newCanvasWidth, newCanvasHeight) {
     
     renderer.setSize(newCanvasWidth, newCanvasHeight);

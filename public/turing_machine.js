@@ -1,3 +1,4 @@
+//Turing-gép osztály
 class TuringMachine {
     constructor(states, alphabet, transitionFunction, initialState, finalStates, tapeNum, headPositions) {
         this.states = states;
@@ -15,6 +16,7 @@ class TuringMachine {
         this.maxSteps = 1000;
     }
 
+    //Szalagok inicializálása
     initTapes(tapeNum) {
         for (let i = 0; i < tapeNum; ++i) {
             this.tapes[i] = ['_'];
@@ -23,6 +25,7 @@ class TuringMachine {
         }
     }
 
+    //Írófej alatti szimbólumok lekérdezése
     getLetterIdentifier() {
         const letters = [];
 
@@ -33,6 +36,7 @@ class TuringMachine {
         return letters;
     }
 
+    //Lépés
     step() {
         try {
             
@@ -90,6 +94,7 @@ class TuringMachine {
         }
     }
 
+    //Szimulációhoz tartozó állapot lekérdezése
     packageState() {
         let turingMachineState = {
             currState: this.currentState,
@@ -103,6 +108,7 @@ class TuringMachine {
         return turingMachineState;
     }
 
+    //Teljes logolható konfiguráció lekérdezése
     packageLogState() {
         let turingMachineState = {
             states: this.states,
@@ -120,10 +126,12 @@ class TuringMachine {
         return turingMachineState;
     }
 
+    //Leállt-e?
     isHalted() {
         return this.finalStates.includes(this.currentState);
     }
 
+    //Átlépte-e a megadott lépéshatárt?
     isOverLimit() {
         return this.maxSteps <= 0;
     }

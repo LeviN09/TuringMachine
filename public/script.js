@@ -1,14 +1,15 @@
 import { initCanvas, updateCanvas, updateCanvasSize } from "./graphics.js";
 
+///
+/// Konfigurációs panelt kezelő szkript
+///
+
 document.addEventListener("DOMContentLoaded", function() {
     var turingMachines = [];
     var simulationStarted = false;
-
-    const logList = document.getElementById("log-list");
     let turingMachineStates = [];
-
-    let timer = 0;
-
+    
+    //html oldali kontrollelemek betöltése
     const startButton = document.getElementById('start-button');
     const stepButton = document.getElementById('step-button');
     const saveButton = document.getElementById('save-button');
@@ -17,10 +18,8 @@ document.addEventListener("DOMContentLoaded", function() {
     const wholeSimButton = document.getElementById('whole-simulation-button');
     const delLogButton = document.getElementById('delete-log-button');
     const delTransButton = document.getElementById('clear-transition-list-button');
-
     const speedLabel = document.getElementById('speed-label');
     const speedSlider = document.getElementById('step-speed');
-
     const states = document.getElementById('states');
     const alphabet = document.getElementById('alphabet');
     const initialState = document.getElementById('initial-state');
@@ -29,11 +28,15 @@ document.addEventListener("DOMContentLoaded", function() {
     const tape = document.getElementById('tape');
     const numTapesSelect = document.getElementById("num-tapes");
     const numTapesSelectBtn = document.getElementById("confirm-tape-num-btn");
-    var selectedTapeNum = numTapesSelect.value;
-
     const toggleIcon = document.getElementById('toggle-icon');
     const textFieldContainer = document.querySelector('.text-field-container');
-
+    const logList = document.getElementById("log-list");
+    const inputMethodDropdowns = document.getElementById("transition-function-dropdowns");
+    const inputMethodText = document.getElementById("transition-function-text");
+    const transitionList = document.getElementById("transition-list");
+    const addTransitionBtn = document.getElementById("add-transition-btn");
+    
+    //Konfig panel megjelenítése/eltűntetése
     toggleIcon.addEventListener('click', function() {
         if (textFieldContainer.style.display === 'none') {
             textFieldContainer.style.display = 'block';
@@ -43,7 +46,9 @@ document.addEventListener("DOMContentLoaded", function() {
             updateCanvasSize(window.innerWidth, window.innerHeight);
         }
     });
-
+    
+    //Kontrollelemek beolvasása
+    var selectedTapeNum = numTapesSelect.value;
     function packageInitState() {
         const selectedMethod = document.querySelector('input[name="inputMethod"]:checked').value;
         var transitionFunctionStr;
@@ -83,111 +88,6 @@ document.addEventListener("DOMContentLoaded", function() {
         };
 
         return turingMachineState;
-    }
-
-    function startSimulation() {
-        var tmState = packageInitState();
-
-        loadNewState(tmState);
-    }
-
-    playButton.addEventListener("click", togglePlay);
-
-    function togglePlay() {
-        if (!simulationStarted) {
-            timer = setInterval(step, speedSlider.value);
-            playButton.textContent = "⏸";
-        }
-        else {
-            clearInterval(timer);
-            playButton.textContent = "⏵";
-        }
-
-        simulationStarted = !simulationStarted;
-    }
-
-    speedSlider.addEventListener("input", setSpeed);
-
-    function setSpeed() {
-        speedLabel.textContent = "Lépés sebessége: " + speedSlider.value + "ms";
-        if (simulationStarted) {
-            clearInterval(timer);
-            timer = setInterval(step, speedSlider.value);
-        }
-    }
-    
-    wholeSimButton.addEventListener("click", wholeSimulation);
-
-    function step() {
-        var tm = turingMachines[0];
-
-        
-        if (tm.step()) {
-            addStateEntry(tm.packageLogState());
-            updateCanvas(tm.packageState());
-        }
-        else {
-            const text = `Szalag: ${tm.tapes[0].join('')}\nTerminált: ${tm.isHalted()}`
-            document.getElementById('result').innerText = text;
-            if (tm.maxSteps != -1) {
-                alert(text);
-            }
-            else {
-                alert("A futás problémába ütközött, a gép nem megfelelően lett konfigurálva!");
-            }
-            if (simulationStarted) {
-                togglePlay();
-            }
-            return;
-        }
-
-    }
-
-    function loadNewState(tmState) {
-        turingMachines.length = 0;
-
-        var tm = new TuringMachine(
-            tmState.states,
-            tmState.alphabet,
-            tmState.transFunct,
-            tmState.initState,
-            tmState.finalStates,
-            tmState.tapeNum,
-            tmState.headPosis
-        );
-        tm.tapes = tmState.tapes;
-        turingMachines.push(tm);
-
-        initCanvas(tmState);
-    }
-
-    startButton.addEventListener('click', () => {
-        startSimulation();
-    });
-
-    stepButton.addEventListener('click', step);
-
-    saveButton.addEventListener('click', () => {
-        saveConfiguration();
-    });
-
-    loadButton.addEventListener('click', () => {
-        loadConfiguration();
-    });
-
-    function wholeSimulation() {
-        var tm = turingMachines[0];
-
-        while (tm.step()) {}
-
-        const text = `Szalag: ${tm.tapes[0].join('')}\nTerminált: ${tm.isHalted()}`
-        document.getElementById('result').innerText = text;
-        if (tm.maxSteps != -1) {
-            alert(text);
-        }
-        else {
-            alert("A futás problémába ütközött, a gép nem megfelelően lett konfigurálva!");
-        }
     }
 
     function parseTransitionFunction(transitionFunctionStr) {
@@ -232,6 +132,102 @@ document.addEventListener("DOMContentLoaded", function() {
         return transitions;
     }
 
+    //Szimuláció indítása
+    startButton.addEventListener('click', startSimulation);
+    function startSimulation() {
+        var tmState = packageInitState();
+        loadNewState(tmState);
+    }
+
+    //Automatikus szimuláció elindítása/megállítása
+    let timer = 0;
+    playButton.addEventListener("click", togglePlay);
+    function togglePlay() {
+        if (!simulationStarted) {
+            timer = setInterval(step, speedSlider.value);
+            playButton.textContent = "⏸";
+        }
+        else {
+            clearInterval(timer);
+            playButton.textContent = "⏵";
+        }
+
+        simulationStarted = !simulationStarted;
+    }
+
+    //Sebesség változtatása
+    speedSlider.addEventListener("input", setSpeed);
+    function setSpeed() {
+        speedLabel.textContent = "Lépés sebessége: " + speedSlider.value + "ms";
+        if (simulationStarted) {
+            clearInterval(timer);
+            timer = setInterval(step, speedSlider.value);
+        }
+    }
+    
+    //Lépés
+    stepButton.addEventListener('click', step);
+    function step() {
+        var tm = turingMachines[0];
+        
+        if (tm.step()) {
+            addStateEntry(tm.packageLogState());
+            updateCanvas(tm.packageState());
+        }
+        else {
+            const text = `Szalag: ${tm.tapes[0].join('')}\nTerminált: ${tm.isHalted()}`
+            document.getElementById('result').innerText = text;
+            if (tm.maxSteps != -1) {
+                alert(text);
+            }
+            else {
+                alert("A futás problémába ütközött, a gép nem megfelelően lett konfigurálva!");
+            }
+            if (simulationStarted) {
+                togglePlay();
+            }
+            return;
+        }
+    }
+
+    //Konfiguráció betöltése
+    function loadNewState(tmState) {
+        turingMachines.length = 0;
+
+        var tm = new TuringMachine(
+            tmState.states,
+            tmState.alphabet,
+            tmState.transFunct,
+            tmState.initState,
+            tmState.finalStates,
+            tmState.tapeNum,
+            tmState.headPosis
+        );
+        tm.tapes = tmState.tapes;
+        turingMachines.push(tm);
+
+        initCanvas(tmState);
+    }
+
+    //Gyors eredmény
+    wholeSimButton.addEventListener("click", wholeSimulation);
+    function wholeSimulation() {
+        var tm = turingMachines[0];
+
+        while (tm.step()) {}
+
+        const text = `Szalag: ${tm.tapes[0].join('')}\nTerminált: ${tm.isHalted()}`
+        document.getElementById('result').innerText = text;
+        if (tm.maxSteps != -1) {
+            alert(text);
+        }
+        else {
+            alert("A futás problémába ütközött, a gép nem megfelelően lett konfigurálva!");
+        }
+    }
+
+    //Json lementés
+    saveButton.addEventListener('click', saveConfiguration);
     function saveConfiguration() {
         const configuration = {
             states: document.getElementById('states').value.split(','),
@@ -253,6 +249,8 @@ document.addEventListener("DOMContentLoaded", function() {
         URL.revokeObjectURL(url);
     }
 
+    //Json betöltés
+    loadButton.addEventListener('click', loadConfiguration);
     function loadConfiguration() {
         const input = document.createElement('input');
         input.type = 'file';
@@ -281,9 +279,11 @@ document.addEventListener("DOMContentLoaded", function() {
         input.click();
     }
 
-    const inputMethodDropdowns = document.getElementById("transition-function-dropdowns");
-    const inputMethodText = document.getElementById("transition-function-text");
-
+    //Átmeneti függvény beviteli mód választása
+    const radioInputs = document.querySelectorAll('input[name="inputMethod"]');
+    radioInputs.forEach(input => {
+        input.addEventListener("change", toggleInputMethod);
+    });
     function toggleInputMethod() {
         const selectedMethod = document.querySelector('input[name="inputMethod"]:checked').value;
         if (selectedMethod === "dropdowns") {
@@ -294,40 +294,10 @@ document.addEventListener("DOMContentLoaded", function() {
             inputMethodText.style.display = "block";
         }
     }
-
-    const radioInputs = document.querySelectorAll('input[name="inputMethod"]');
-    radioInputs.forEach(input => {
-        input.addEventListener("change", toggleInputMethod);
-    });
-
     toggleInputMethod();
 
-    // ----------------------------------
-
-    function addStateEntry(state) {
-        let newState = structuredClone(state);
-        turingMachineStates.push(newState);
-        const listItem = document.createElement("li");
-        listItem.textContent = state.tapes[0];
-
-        const loadButton = document.createElement("button");
-        loadButton.textContent = "Betöltés";
-        loadButton.addEventListener("click", function() {
-            loadNewState(newState);
-        });
-
-        listItem.appendChild(loadButton);
-        logList.appendChild(listItem);
-    }
-
-    delLogButton.addEventListener("click", () => {
-        logList.innerHTML = "";
-    });
-
-
-    const transitionList = document.getElementById("transition-list");
-    const addTransitionBtn = document.getElementById("add-transition-btn");
-
+    //Átmeneti szabály hozzáadása
+    addTransitionBtn.addEventListener("click", addTransitionEntry);
     function addTransitionEntry() {
         const listItem = document.createElement("li");
         listItem.setAttribute("class", "transition-list-item")
@@ -392,25 +362,20 @@ document.addEventListener("DOMContentLoaded", function() {
         return divElement;
     }
 
-    addTransitionBtn.addEventListener("click", addTransitionEntry);
-
-    numTapesSelectBtn.addEventListener("click", setNumTapes);
+    //Szabályok törlése
     delTransButton.addEventListener("click", () => {
         transitionList.innerHTML = "";
     });
-
+    
+    //Szalagszám változtatása
+    numTapesSelectBtn.addEventListener("click", setNumTapes);
     function setNumTapes() {
         selectedTapeNum = numTapesSelect.value;
         transitionList.innerHTML = "";
         alert("A szalagszám mostantól a következő: " + numTapesSelect.value);
     }
 
-    document.addEventListener("click", function(event) {
-        if (event.target && event.target.classList.contains("remove-transition-line-btn")) {
-            event.target.parentElement.remove();
-        }
-    });
-
+    //Opciók frissítése
     states.addEventListener("input", function() {
         const stateSelects = document.querySelectorAll("#from-state, #to-state");
         stateSelects.forEach(select => {
@@ -444,8 +409,33 @@ document.addEventListener("DOMContentLoaded", function() {
         blankOpt.textContent = "_";
         select.appendChild(blankOpt);
     }
+
+    // --------------------------------------------------
+
+    //Állapot logolása
+    function addStateEntry(state) {
+        let newState = structuredClone(state);
+        turingMachineStates.push(newState);
+        const listItem = document.createElement("li");
+        listItem.textContent = state.tapes[0];
+
+        const loadButton = document.createElement("button");
+        loadButton.textContent = "Betöltés";
+        loadButton.addEventListener("click", function() {
+            loadNewState(newState);
+        });
+
+        listItem.appendChild(loadButton);
+        logList.appendChild(listItem);
+    }
+
+    //Log ürítése
+    delLogButton.addEventListener("click", () => {
+        logList.innerHTML = "";
+    });
 });
 
+//Átmeneti függvény átalakítása szöveggé
 function stringifyTransitionFunction() {
     const transitionFunctionDiv = document.getElementById("transition-list");
     let transitionLines = "";
